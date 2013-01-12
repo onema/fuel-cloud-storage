@@ -1,0 +1,11 @@
+{
+    "config": {
+        "vendor-dir": "fuel/vendor"
+    },
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.3.6",
+        "aws/aws-sdk-php": "2.*",
+        "omissis/php-cloudfiles": "dev-master"
+    }
+}
