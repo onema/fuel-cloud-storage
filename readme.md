@@ -10,32 +10,33 @@ A simple class abstraction for cloud storage providers for Fuel. Default provide
 
 # Supported Drivers
 
-* - Amazon S3 (Uses AWS-PHP-SDK 2)
-* - Rackspace Cloud Files 
+* Amazon S3 (Uses AWS-PHP-SDK 2)
+* Rackspace Cloud Files 
 
 # Installation
 
 * Use Composer to install the appropriate libraries. 
-* A sample_composer.json file is provided with this package,
-* this package assumes that composer is setup to work as 
-* specified in this guide: 
-* http://tomschlick.com/2012/11/01/composer-with-fuelphp/
-* This package follows very closely the conventions used in 
-* the FuelPHP email package. 
-*
-* Use the config file to set the correct authentication 
-* key pair (access/secret keys in the case of Amazon and 
-* username/api-key for RackSpace). For uniformity these are
-* simply called access_key and access_secret.
-* If no Keys are specified in the config file, these can 
-* still be set at run time by using the method set_config:
+A sample_composer.json file is provided with this package,
+this package assumes that composer is setup to work as 
+specified in this guide: http://tomschlick.com/2012/11/01/composer-with-fuelphp/ 
+
+* Use the config file to set the correct authentication.
+Set the key pair (access/secret keys in the case of Amazon and 
+username/api-key for RackSpace). For uniformity these are
+simply called access_key and access_secret.
+If no Keys are specified in the config file, these can 
+still be set at run time by using the method set_config:
 
     $Driver->set_config('access_key', $access_key_value);
     $Driver->set_config('access_secret', $access_secret_value);
 
-* Once the libraries have been installed, you can use the 
-* sample below or run the test cases from the command line 
-*     oil test --group=storage
+* Run the unit test or set see the sample below. 
+This package comes with very simple unit tests that check the most basic 
+functionality of the package. The unit test can be run by using the gropu=storage 
+
+     oil test --group=storage
+
+
 
 # Usage
 
@@ -83,7 +84,7 @@ A simple class abstraction for cloud storage providers for Fuel. Default provide
         curl_close($ch);
         return $code;
     }
-	
+    
 
 # Exceptions
     + \InvalidDriverException, thrown when the given driver doesn't exist
@@ -98,12 +99,15 @@ A simple class abstraction for cloud storage providers for Fuel. Default provide
 
 # TODOS:
 
-* - Create an update method that will replace an existing file.
-* - Fail upload if file already exist.
-* - Enable multi-part upload for large size files.
-* - Handle each exception appropriately, currently each exception re-throwns 
-*   the exception as one of the above.
-* - List all containers
+* Create an update method that will replace an existing file.
+* Fail upload if file already exist.
+* Enable multi-part upload for large size files.
+* Handle each exception appropriately, currently each exception re-throwns the exception as one of the exceptions specified in the package.
+* List all containers
+* Copy between containers
+* Re-name files
+* Re-name containers
+* Extend unit tests to verify correct exception handling
 
-	
-	
+    
+    

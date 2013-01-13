@@ -2,6 +2,14 @@
 /**
  * Amazon Web Services S3 Driver. 
  * Use Composer "require": {"aws/aws-sdk-php": "2.*"}
+ *
+ * @package Cloud_Storage
+ * @version 0.1 
+ * @author  Juan Manuel Torres <juan.torres@alleluu.com>
+ * @license MIT License
+ * @copyright  2013-2014 Alleluu Development team
+ * @link  https://github.com/alleluu/fuel-cloud-storage
+ * @link  http://opensource.org/licenses/MIT
  */
 
 namespace Cloud_Storage;
@@ -231,7 +239,7 @@ class Cloud_Storage_Driver_S3 extends Cloud_Storage_Driver
      * @param type $from_container_name
      * @param type $to_container_name
      * @param type $file_name Full name of the origin file, this should include path.
-     * @param type $new_file_name Optional, Full namee to the destination container. If not set it will use the same path and name as the source
+        * @param type $new_file_name Optional, Full namee to the destination container. If not set it will use the same path and name as the source
      * @return boolean
      * @throws CopyObjectException
      */

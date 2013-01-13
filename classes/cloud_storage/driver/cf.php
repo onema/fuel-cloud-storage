@@ -2,6 +2,14 @@
 /**
  * Rackspace Cloud Files Drivers. 
  * Use Composer  "require": {"omissis/php-cloudfiles": "dev-master"}
+ *
+ * @package Cloud_Storage
+ * @version 0.1 
+ * @author  Juan Manuel Torres <juan.torres@alleluu.com>
+ * @license MIT License
+ * @copyright  2013-2014 Alleluu Development team
+ * @link  https://github.com/alleluu/fuel-cloud-storage
+ * @link  http://opensource.org/licenses/MIT
  */
 
 namespace Cloud_Storage;
