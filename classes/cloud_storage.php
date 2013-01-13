@@ -12,23 +12,27 @@
 
 namespace Cloud_Storage;
 
-class InvalidDriverException extends \FuelException {};
+class CloudStorageException extends \FuelException {};
 
-class InvalidFileException extends \FuelException {};
+class InvalidDriverException extends CloudStorageException {};
 
-class UploadObjectException extends \FuelException {};
+class InvalidFileException extends CloudStorageException {};
 
-class DeleteObjectException extends \FuelException {};
+class UploadObjectException extends CloudStorageException {};
 
-class CreateContainerException extends \FuelException {};
+class DeleteObjectException extends CloudStorageException {};
 
-class DeleteContainerException extends \FuelException {};
+class CreateContainerException extends CloudStorageException {};
 
-class ListObjectsException extends \FuelException {};
+class DeleteContainerException extends CloudStorageException {};
 
-class AuthenticationException extends \FuelException {};
+class ListObjectsException extends CloudStorageException {};
 
-class InvalidContainerException extends \FuelException {};
+class AuthenticationException extends CloudStorageException {};
+
+class InvalidContainerException extends CloudStorageException {};
+
+class CopyObjectException extends CloudStorageException {};
 
 class Cloud_Storage
 {

@@ -228,6 +228,55 @@ class Cloud_Storage_Driver_Cf extends Cloud_Storage_Driver
     
     
     /**
+     * Copy a file from one container to another. This method requires the following
+     * patch https://github.com/rackspace/php-cloudfiles/pull/87
+     * Also see https://github.com/rackspace/php-cloudfiles/issues/82
+     * 
+     * @param type $from_container_name
+     * @param type $to_container_name
+     * @param type $file_name Full name of the origin file, this should include path.
+     * @param type $new_file_name Optional, Full namee to the destination container. If not set it will use the same path and name as the source
+     * @return boolean
+     * @throws CopyObjectException
+     */
+    public function copy_to($from_container_name, $to_container_name, $file_name, $new_file_name = null)
+    {
+        $file_info = pathinfo($file_name);
+        !isset($new_file_name) and $new_file_name = $file_info['dirname'] . '/' . $file_info['basename'];
+        
+        $new_file_name = ltrim($new_file_name, '/');
+        
+        try
+        {
+            $container = $this->get_container($from_container_name);
+            $object = $container->get_object($file_name);
+            
+            // Copy to Rackspace target container
+            $container->copy_object_to($object, $to_container_name, $new_file_name);
+            
+        }
+        catch(AuthenticationException $e)
+        {
+            throw new CopyObjectException($e->getMessage());
+        }
+        catch(\SyntaxException $e)
+        {
+            throw new CopyObjectException($e->getMessage());
+        }
+        catch(\NoSuchObjectException $e)
+        {
+            throw new CopyObjectException($e->getMessage());
+        }
+        catch(\InvalidResponseException $e)
+        {
+            throw new CopyObjectException($e->getMessage());
+        }
+        
+        return true;
+    }
+    
+    
+    /**
      * Get the container by name
      * @param string $name
      * @return CF_Container

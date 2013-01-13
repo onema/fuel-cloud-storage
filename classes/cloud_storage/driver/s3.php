@@ -20,6 +20,7 @@ class Cloud_Storage_Driver_S3 extends Cloud_Storage_Driver
     /**
      * Delete an object from an Amazon S3 Bucket. The path to object is the full
      * name of the file that will be deleted.
+     * 
      * @param string $path_to_object full path to object including base name and extension
      * @return boolean
      * @throws CantDeleteException
@@ -49,6 +50,7 @@ class Cloud_Storage_Driver_S3 extends Cloud_Storage_Driver
      
     /**
      * Upload an object to the selected container.
+     * 
      * @param string $path_to_object
      * @param string $new_file_name use an alternative name for the file, otherwise use the same name as the source
      * @return boolean
@@ -87,6 +89,7 @@ class Cloud_Storage_Driver_S3 extends Cloud_Storage_Driver
     
     
     /**
+     * Creates a new S3 Bucket.
      * 
      * @param string $name name of the bucket to be created
      * @param string $location Specifies the region where the bucket will be created.
@@ -124,6 +127,7 @@ class Cloud_Storage_Driver_S3 extends Cloud_Storage_Driver
      * Executes a DeleteBucket command: Deletes the bucket. All objects 
      * (including all object versions and Delete Markers) in the bucket 
      * must be deleted before the bucket itself can be deleted.
+     * 
      * @param string $name bucket name to be deleted
      * @return boolean
      * @throws DeleteContainerException
@@ -188,6 +192,7 @@ class Cloud_Storage_Driver_S3 extends Cloud_Storage_Driver
     
     /**
      * Returns the Amazon S3 bucket url, by default it uses https protocol
+     * 
      * @param string $name container name
      * @return string
      * @throws InvalidContainerException
@@ -217,6 +222,51 @@ class Cloud_Storage_Driver_S3 extends Cloud_Storage_Driver
         }
         
         return 'https://s3.amazonaws.com/' . $name . '/' ;
+    }
+    
+    
+    /**
+     * Copy a file from one container to another.
+     * 
+     * @param type $from_container_name
+     * @param type $to_container_name
+     * @param type $file_name Full name of the origin file, this should include path.
+     * @param type $new_file_name Optional, Full namee to the destination container. If not set it will use the same path and name as the source
+     * @return boolean
+     * @throws CopyObjectException
+     */
+    public function copy_to($from_container_name, $to_container_name, $file_name, $new_file_name = null)
+    {
+        $file_info = pathinfo($file_name);
+        !isset($new_file_name) and $new_file_name = $file_info['dirname'] . '/' . $file_info['basename'];
+        
+        $new_file_name = ltrim($new_file_name, '/');
+        
+        try 
+        {
+            /*
+             * Create a new s3 client instance, this happens here to allow for 
+             * the keys to be changed/updated at run time.
+             */
+            $this->create_instance();
+            $url = $this->get_container_url($from_container_name);
+            $this->s3->copyObject(array(
+                'Bucket'        => $to_container_name,
+                'Key'           => $new_file_name,
+                'CopySource'    => urlencode($from_container_name . '/' . $file_name),
+                'ACL'           => CannedAcl::PUBLIC_READ
+            ));
+        } 
+        catch(S3Exception $e) 
+        {
+            throw new CopyObjectException($e->getMessage());
+        }
+        catch(\Guzzle\Service\Exception\ValidationException $e)
+        {
+            throw new CopyObjectException($e->getMessage());
+        }
+        
+        return true;
     }
     
     

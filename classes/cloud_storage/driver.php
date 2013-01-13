@@ -92,6 +92,16 @@ abstract class Cloud_Storage_Driver
     abstract public function list_objects($path = '', $bucket_name = null);
     abstract public function get_container_url($name = null);
     
+    abstract public function copy_to($from_container_name, $to_container_name, $file_name, $new_file_name = null);
+
+    /**
+     * @todo implement the following methods.
+     */
+    
+    //abstract public function rename_file($old_file_name, $new_file_name);
+    //abstract public function rename_container($old_container_name, $new_container_name);
+    //abstract public function list_containers();
+    
     
 
 }

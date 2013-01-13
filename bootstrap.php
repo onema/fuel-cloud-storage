@@ -14,14 +14,16 @@ Autoloader::add_classes(array(
 	/**
 	 * Cloud_Storage exceptions.
 	 */
-	'Cloud_Storage\\InvalidDriverException' => __DIR__.'/classes/cloud_storage.php',
-	'Cloud_Storage\\InvalidFileException'   => __DIR__.'/classes/cloud_storage.php',
-	'Cloud_Storage\\UploadObjectException'  => __DIR__.'/classes/cloud_storage.php',
-    'Cloud_Storage\\DeleteObjectException'  => __DIR__.'/classes/cloud_storage.php',
-    'Cloud_Storage\\ListObjectsException'   => __DIR__.'/classes/cloud_storage.php',
+    'Cloud_Storage\\CloudStorageException'      => __DIR__.'/classes/cloud_storage.php',
+    'Cloud_Storage\\AuthenticationException'    => __DIR__.'/classes/cloud_storage.php',
+	'Cloud_Storage\\InvalidDriverException'     => __DIR__.'/classes/cloud_storage.php',
+	'Cloud_Storage\\InvalidFileException'       => __DIR__.'/classes/cloud_storage.php',
+	'Cloud_Storage\\UploadObjectException'      => __DIR__.'/classes/cloud_storage.php',
+    'Cloud_Storage\\DeleteObjectException'      => __DIR__.'/classes/cloud_storage.php',
+    'Cloud_Storage\\ListObjectsException'       => __DIR__.'/classes/cloud_storage.php',
     'Cloud_Storage\\CreateContainerException'   => __DIR__.'/classes/cloud_storage.php',
     'Cloud_Storage\\DeleteContainerException'   => __DIR__.'/classes/cloud_storage.php',
-    'Cloud_Storage\\AuthenticationException'    => __DIR__.'/classes/cloud_storage.php',
+    'Cloud_Storage\\CopyObjectException'        => __DIR__.'/classes/cloud_storage.php',
     
 	
 ));
