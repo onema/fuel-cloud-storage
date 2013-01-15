@@ -15,6 +15,9 @@ A simple class abstraction for cloud storage providers. Default providers includ
 * Amazon S3 (Uses AWS-PHP-SDK 2)
 * Rackspace Cloud Files 
 
+# Version
+0.1
+
 # Installation
 * Install Composer. Follow this guide to enable fuelphp to work with composer
 http://www.fuelphp.com/blogs/2013/01/fuelphp-and-composer. Each driver assumes
