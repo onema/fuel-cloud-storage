@@ -85,7 +85,7 @@ abstract class Cloud_Storage_Driver
         
         return $file_info;
     }
-
+    
     
     abstract public function delete_object($path_to_object);
     abstract public function upload_object($path_to_object, $new_file_name = null);
@@ -95,6 +95,7 @@ abstract class Cloud_Storage_Driver
     abstract public function get_container_url($name = null);
     
     abstract public function copy_to($from_container_name, $to_container_name, $file_name, $new_file_name = null);
+    abstract public function object_exists($path_to_object, $container = null);
 
     /**
      * @todo implement the following methods.

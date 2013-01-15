@@ -14,7 +14,8 @@
 
 namespace Cloud_Storage;
 
-require dirname(COREPATH).'/vendor/omissis/php-cloudfiles/cloudfiles.php';
+// @TODO: there has to be a better way to include this file
+require APPPATH.'vendor/omissis/php-cloudfiles/cloudfiles.php';
 
 class Cloud_Storage_Driver_Cf extends Cloud_Storage_Driver
 {
@@ -118,6 +119,7 @@ class Cloud_Storage_Driver_Cf extends Cloud_Storage_Driver
         }
         catch(\SyntaxException $e)
         {
+            // there was a problem with the container provided  
             throw new CreateContainerException($e->getMessage());
         }
         
@@ -282,6 +284,29 @@ class Cloud_Storage_Driver_Cf extends Cloud_Storage_Driver
         
         return true;
     }
+
+    
+    /**
+     * Check if the object exist. This particular method uses cURL to get the 
+     * object code. If the code is 200 we assume it exists, false otherwise.
+     * 
+     * @param string $path_to_object
+     * @param string $container_name
+     * @return boolean
+     */
+    public function object_exists($path_to_object, $container_name = null)
+    {
+        $url = $this->get_container_url($container)  . $path_to_object;
+        
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_NOBODY, true);
+        curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        
+        // $retcode > 400 -> not found, $retcode = 200, found.
+        return ($code == 200) ? true : false;
+    }
     
     
     /**
@@ -310,9 +335,16 @@ class Cloud_Storage_Driver_Cf extends Cloud_Storage_Driver
         $username = $this->get_config('access_key');
         $api_key = $this->get_config('access_secret');
         
-        $auth = new \CF_Authentication($username, $api_key);
-        $auth->ssl_use_cabundle();
-        $auth->authenticate();
+        try
+        {
+            $auth = new \CF_Authentication($username, $api_key);
+            $auth->ssl_use_cabundle();
+            $auth->authenticate();
+        }   
+        catch(\AuthenticationException $e)
+        {
+            throw new AuthenticationException($e->getMessage()) ;
+        }
         
         if ( $auth->authenticated() )
         {

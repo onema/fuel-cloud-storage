@@ -9,6 +9,10 @@ class test_driver_base extends TestCase
     protected $container_name;
     protected $path_to_test_image;
     protected $driver;
+    protected $Cloud_Storage;
+
+    protected $access_key;
+    protected $access_secret;
     
     public function setUp()
     {
@@ -16,12 +20,34 @@ class test_driver_base extends TestCase
         $this->name = 'img/image.png';
         $this->container_name = 'test_container_' . $this->time;
         $this->path_to_test_image = dirname(__FILE__).'/image.png';
+        
+        // This will use the default config values
+        $this->Cloud_Storage = \Cloud_Storage\Cloud_Storage::forge('s3');
+        $this->Cloud_Storage->create_container($this->container_name);
+        $this->Cloud_Storage->set_config('container', $this->container_name);
+        
+        $this->access_key = $this->Cloud_Storage->get_config('access_key');
+        $this->access_secret = $this->Cloud_Storage->get_config('access_secret');
+        
+        
     }
     
     public function tearDown()
     {
-//        $this->Cloud_Storage->set_config('container', $this->container_name);
-//        $this->Cloud_Storage->delete_container($this->container_name);
+        $this->Cloud_Storage->set_config('access_key', $this->access_key);
+        $this->Cloud_Storage->set_config('access_secret', $this->access_secret);
+        $this->Cloud_Storage->set_config('container', $this->container_name);
+        
+        // Verify file existence and delete it
+        $url = $this->Cloud_Storage->get_container_url($this->container_name) . $this->name;
+        $code = $this->file_code($url);
+        
+        if($code == 200)
+        {
+            $uploaded = $this->Cloud_Storage->delete_object($this->name);
+        }
+        
+        $this->Cloud_Storage->delete_container($this->container_name);
     }
     
     public function test_create_container()
@@ -32,7 +58,6 @@ class test_driver_base extends TestCase
         $this->assertTrue(is_string($url));
         
         return $container_name;
-        
     }
     
     /**
@@ -82,6 +107,65 @@ class test_driver_base extends TestCase
         $deleted = $this->Cloud_Storage->delete_container($container_name);
         $this->assertTrue($deleted);
     }
+    
+    
+    /**
+     * @expectedException UploadObjectException
+     */
+    public function test_upload_with_bad_credentials()
+    {
+        $this->Cloud_Storage->set_config('access_key', '');
+        $this->Cloud_Storage->set_config('access_secret', '');
+        
+        $uploaded = $this->Cloud_Storage->upload_object($this->path_to_test_image, $this->name);
+    }
+    
+    
+    /**
+     * @expectedException InvalidFileException
+     */
+    public function test_upload_bad_object()
+    {
+        $uploaded = $this->Cloud_Storage->upload_object('nothing.txt', $this->name);
+    }
+    
+    /**
+     * @expectedException DeleteObjectException
+     */
+    public function test_delete_bad_object()
+    {
+        $deleted = $this->Cloud_Storage->delete_object('nothing.txt');
+    }
+    
+    /**
+     * @expectedException UploadObjectException
+     */
+    public function test_upload_to_bad_container()
+    {
+        $this->Cloud_Storage->set_config('container', '');
+        
+        $uploaded = $this->Cloud_Storage->upload_object($this->path_to_test_image, $this->name);
+    }
+    
+    
+    /**
+     * @expectedException CreateContainerException
+     */
+    public function test_create_bad_container()
+    {
+        $created = $this->Cloud_Storage->create_container('');
+    }
+    
+    /**
+     * @expectedException DeleteContainerException
+     */
+    public function test_delete_nonempty_container()
+    {
+        $uploaded = $this->Cloud_Storage->upload_object($this->path_to_test_image, $this->name);
+        $created = $this->Cloud_Storage->delete_container($this->container_name);
+        
+    }
+    
     
     protected function file_code($url) 
     {

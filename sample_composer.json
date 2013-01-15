@@ -1,6 +1,6 @@
 {
     "config": {
-        "vendor-dir": "fuel/vendor"
+        "vendor-dir": "vendor"
     },
     "minimum-stability": "dev",
     "require": {

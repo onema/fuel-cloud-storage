@@ -37,14 +37,16 @@ class Cloud_Storage_Driver_S3 extends Cloud_Storage_Driver
     {
         try 
         {
-            /*
-             * Create a new s3 client instance, this happens here to allow for 
-             * the keys to be changed/updated at run time.
-             */
-            $this->create_instance();
+            // AWS doesn't tell us if the file exists or not.
+            if(!$this->object_exists($path_to_object))
+            {
+                throw new DeleteObjectException('File does not exists');
+            }
+            
             $this->s3->deleteObject(array(
                 'Bucket' => $this->get_config('container'),
                 'Key'    => $path_to_object,
+                'args'   => array('required' => true) 
             ));
         } 
         catch (S3Exception $e) 
@@ -88,6 +90,10 @@ class Cloud_Storage_Driver_S3 extends Cloud_Storage_Driver
             ));
         } 
         catch (S3Exception $e) 
+        {
+            throw new UploadObjectException($e->getMessage());
+        }
+        catch (\Aws\Common\Exception\InstanceProfileCredentialsException $e) 
         {
             throw new UploadObjectException($e->getMessage());
         }
@@ -275,6 +281,34 @@ class Cloud_Storage_Driver_S3 extends Cloud_Storage_Driver
         }
         
         return true;
+    }
+    
+    
+    /**
+     * Check if the object exist. This particular method uses the sdk method 
+     * DoesObjectExist and returns it's value.
+     * 
+     * @param string $path_to_object
+     * @param string $container_name
+     * @return boolean
+     */
+    public function object_exists($path_to_object, $container_name = null)
+    {
+        !isset($container_name) and $container_name = $this->get_config('container');
+        
+        try 
+        {
+            /*
+             * Create a new s3 client instance, this happens here to allow for 
+             * the keys to be changed/updated at run time.
+             */
+            $this->create_instance();
+            return $this->s3-> doesObjectExist($container_name, $path_to_object);
+        } 
+        catch (S3Exception $e) 
+        {
+            throw new CloudStorageException($e->getMessage());
+        }
     }
     
     
