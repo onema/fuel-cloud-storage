@@ -4,11 +4,11 @@ A simple class abstraction for cloud storage providers. Default providers includ
 
 # Summary
 
-* Upload, update and delete files from a given container, 
+* Upload, update and delete files from a given container.
 * Creates and deletes containers.
 * Check file existence.
 * Copy files from one container to another.
-* It can also list all the files in a container by prefix, 
+* Also lists all the files in a container by prefix.
 
 # Supported Drivers
 
@@ -17,30 +17,34 @@ A simple class abstraction for cloud storage providers. Default providers includ
 
 # Installation
 * Install Composer. Follow this guide to enable fuelphp to work with composer
-http://www.fuelphp.com/blogs/2013/01/fuelphp-and-composer, Each driver assumes
-that the libraries live in vendor directory in APPPATH.
+http://www.fuelphp.com/blogs/2013/01/fuelphp-and-composer. Each driver assumes
+that the libraries live in the vendor directory in **APPPATH**.
 
 * Use Composer to install the appropriate libraries. 
 A sample_composer.json file is provided with this package, run 
 
-    php composer.phar install  
+
+    $ php composer.phar install  
+
 
 * Use the config file to set the correct authentication.
 Set the key pair (access/secret keys in the case of Amazon and 
 username/api-key for RackSpace). For uniformity these are
 simply called access_key and access_secret.
-If no Keys are specified in the config file, these can 
+If no keys are specified in the config file, they can 
 still be set at run time by using the method set_config:
+
 
     $Driver->set_config('access_key', $access_key_value);
     $Driver->set_config('access_secret', $access_secret_value);
 
-* Run the unit test or set see the sample below. 
+
+* Run the unit test or see the sample below. 
 This package comes with very simple unit tests that check the most basic 
-functionality of the package. The unit test can be run by using the gropu=storage 
+functionality of the package. The unit test can be run by using the group=storage 
 
-     oil test --group=storage
 
+     $ oil test --group=storage
 
 
 # Usage
@@ -102,8 +106,7 @@ functionality of the package. The unit test can be run by using the gropu=storag
     \AuthenticationException, thrown when the credentials fail to authenticate
     \InvalidContainerException, thrown when the given container doesn't exist or is invalid 
 
-#LICENSE
-
+# MIT LICENSE
 
 Copyright (c) 2013 Alleluu.com
 
@@ -113,7 +116,28 @@ The above copyright notice and this permission notice shall be included in all c
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-# CREDITS
+# Creating New Drivers
+There are many storage service providers out there, create new drivers for them if you wish and contribute back :) . Create a new class under the driver directory and extend from the class Cloud_Storage_Driver, Implement all the abstract methods specified in this class.
+
+# Unit Testing New Drivers
+You can quickly test the functionality of new drivers by creating a new test class and placing it in the tests/driver directory. For example a test class for a new Windows Azure Blob Storage (wabs) would look like this
+
+    <?php
+    /**
+     * @group storage
+     */
+    class test_driver_wabs extends test_driver_base
+    {
+        public function setUp()
+        {
+            $this->driver = 'wabs';
+            parent::setUp();
+        }
+    }
+
+And that is it! next time you run the unit test, it will run all the test for your driver.
+
+# Credits
 This package follows closely the email package included in the fuel php distribution. Thank you guys for making such an awesome framework!!
 
 # TODOS:
