@@ -71,7 +71,7 @@ class test_driver_base extends TestCase
         $this->assertTrue($uploaded);
         
         // Verify file existence
-        $url = $this->Cloud_Storage->get_container_url($container_name) . $this->name;
+        $url = $this->Cloud_Storage->get_container_url() . $this->name;
         $code = $this->file_code($url);
         $this->assertEquals($code, 200);
         
@@ -90,7 +90,7 @@ class test_driver_base extends TestCase
         $this->assertTrue($deleted);
         
         // Verify file was deleted
-        $url = $this->Cloud_Storage->get_container_url($container_name) . $this->name;
+        $url = $this->Cloud_Storage->get_container_url() . $this->name;
         $code = $this->file_code($url);
         $this->assertGreaterThan(400, $code);
         
@@ -104,10 +104,74 @@ class test_driver_base extends TestCase
     {
         $this->Cloud_Storage->set_config('container', $container_name);
         
-        $deleted = $this->Cloud_Storage->delete_container($container_name);
+        $deleted = $this->Cloud_Storage->delete_container();
         $this->assertTrue($deleted);
     }
     
+    /**
+     * This method is identical to test_create_container it is here to test the following methods.
+     * @return string
+     */
+    public function test_create_container_with_parameter()
+    {
+        $container_name = 'test_create_container_' . $this->time;
+        $url = $this->Cloud_Storage->create_container($container_name);
+        $this->Cloud_Storage->set_config('container', $container_name);
+        $this->assertTrue(is_string($url));
+        
+        return $container_name;
+    }
+    
+    /**
+     * @depends test_create_container_with_parameter
+     */
+    public function test_upload_with_parameter($container_name)
+    {
+        // set a dummy default container
+        $created = $this->Cloud_Storage->set_config('container', '');
+        // Upload file
+        $uploaded = $this->Cloud_Storage->upload_object($this->path_to_test_image, $this->name, $container_name);
+        $this->assertTrue($uploaded);
+        
+        // Verify file existence
+        $url = $this->Cloud_Storage->get_container_url($container_name) . $this->name;
+        $code = $this->file_code($url);
+        $this->assertEquals($code, 200);
+        
+        return $container_name;
+    }
+    
+    /**
+     * @depends test_upload_with_parameter
+     */
+    public function test_delete_with_parameter($container_name)
+    {
+        // set a dummy default container
+        $this->Cloud_Storage->set_config('container', '');
+        
+        // Delete file
+        $deleted = $this->Cloud_Storage->delete_object($this->name, $container_name);
+        $this->assertTrue($deleted);
+        
+        // Verify file was deleted
+        $url = $this->Cloud_Storage->get_container_url($container_name) . $this->name;
+        $code = $this->file_code($url);
+        $this->assertGreaterThan(400, $code);
+        
+        return $container_name;
+    }
+    
+    /**
+     * @depends test_delete_with_parameter
+     */
+    public function test_delete_container_with_parameter($container_name)
+    {
+        // set a dummy default container
+        $this->Cloud_Storage->set_config('container', '');
+        
+        $deleted = $this->Cloud_Storage->delete_container($container_name);
+        $this->assertTrue($deleted);
+    }
     
     /**
      * @expectedException UploadObjectException

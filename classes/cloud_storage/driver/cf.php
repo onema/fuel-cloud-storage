@@ -4,7 +4,6 @@
  * Use Composer  "require": {"omissis/php-cloudfiles": "dev-master"}
  *
  * @package Cloud_Storage
- * @version 0.1 
  * @author  Juan Manuel Torres <juan.torres@alleluu.com>
  * @license MIT License
  * @copyright  2013-2014 Alleluu Development team
@@ -26,14 +25,16 @@ class Cloud_Storage_Driver_Cf extends Cloud_Storage_Driver
      * @return boolean
      * @throws DeleteObjectException
      */
-    public function delete_object($path_to_object)
+    public function delete_object($path_to_object, $container_name = null)
     {
+        $container_name = $this->validate_container_name($container_name);
+        
         try
         {
-            $container = $this->get_container($this->get_config('container'));
+            $Container = $this->get_container($container_name);
             
             // upload file to Rackspace
-            $object = $container->delete_object($path_to_object);
+            $object = $Container->delete_object($path_to_object);
             
         }
         catch(AuthenticationException $e)
@@ -65,16 +66,17 @@ class Cloud_Storage_Driver_Cf extends Cloud_Storage_Driver
      * @throws CantUploadException
      * @throws InvalidFileException
      */
-    public function upload_object($path_to_object, $new_file_name = null)
+    public function upload_object($path_to_object, $new_file_name = null, $container_name = null)
     {
+        $container_name = $this->validate_container_name($container_name);
         $file_info = $this->get_file_info($path_to_object, $new_file_name);
 
         try
         {
-            $container = $this->get_container($this->get_config('container'));
+            $Container = $this->get_container($container_name);
             
             // upload file to Rackspace
-            $object = $container->create_object($file_info['basename']);
+            $object = $Container->create_object($file_info['basename']);
             $object->load_from_filename($path_to_object);
             
         }
@@ -89,21 +91,21 @@ class Cloud_Storage_Driver_Cf extends Cloud_Storage_Driver
     
     /**
      * 
-     * @param string $name name of the bucket to be created
+     * @param string $container_name name of the bucket to be created
      * @param string $location Rackspace doesn't support location for CF. Specifies the region where the bucket will be created.
      * @return string the url to the public container.
      * @throws CreateContainerException
      */
     
-    public function create_container($name, $location = null)
+    public function create_container($container_name, $location = null)
     {
         try
         {
-            $connection = $this->connect();
-            $container = $connection->create_container($name);
+            $Connection = $this->connect();
+            $Container = $Connection->create_container($container_name);
 
             // upload file to Rackspace
-            $url = $container->make_public(static::TTL);
+            $url = $Container->make_public(static::TTL);
         }
         catch(AuthenticationException $e)
         {
@@ -130,16 +132,18 @@ class Cloud_Storage_Driver_Cf extends Cloud_Storage_Driver
     /**
      * Executes a Delete Container command: Deletes the container. All objects 
      * in the container must be deleted before the container itself can be deleted.
-     * @param string $name bucket name to be deleted
+     * @param string $container_name bucket name to be deleted
      * @return boolean
      * @throws DeleteContainerException
      */
-    public function delete_container($name)
+    public function delete_container($container_name = null)
     {
+        $container_name = $this->validate_container_name($container_name);
+        
         try
         {
-            $connection = $this->connect();
-            $container = $connection->delete_container($name);
+            $Connection = $this->connect();
+            $Container = $Connection->delete_container($container_name);
         }
         catch(AuthenticationException $e)
         {
@@ -170,21 +174,20 @@ class Cloud_Storage_Driver_Cf extends Cloud_Storage_Driver
      * Returns a list of all the objects within a specified path/prefix. 
      * 
      * @param type $path the base path to the objects we want to list
-     * @param type $bucket_name (Optional) if not provided the default bucket will be used
+     * @param type $container_name (Optional) if not provided the default bucket will be used
      * @return array A list with the most basic information about each object in the list
      * @throws ListObjectsException
      */
-    public function list_objects($path = '', $bucket_name = null)
+    public function list_objects($path = '', $container_name = null)
     {
-        // Use the default bucket if none is specified
-        !isset($bucket_name) and $bucket_name = $this->get_config('container');
+        $container_name = $this->validate_container_name($container_name);
         
         try
         {
-            $container = $this->get_container($bucket_name);
+            $Container = $this->get_container($container_name);
             
             // upload file to Rackspace
-            $list = $container->list_objects(1000, null, $path);
+            $list = $Container->list_objects(1000, null, $path);
             
         }
         catch(AuthenticationException $e)
@@ -204,21 +207,20 @@ class Cloud_Storage_Driver_Cf extends Cloud_Storage_Driver
      * Get the url of the given container, this method will assume the container 
      * is public and It uses the method make_publc to get the URL as the API doesn't
      * provide an alternative way to get the public URL to the container.
-     * @param string $name
+     * @param string $container_name
      * @return type
      * @throws InvalidContainerException
      */
-    public function get_container_url($name = null)
+    public function get_container_url($container_name = null)
     {
-        // use the default container name if one is not provided.
-        !isset($name) and $name = $this->get_config('container');
+        $container_name = $this->validate_container_name($container_name);
         
         try
         {
-            $container = $this->get_container($name);
+            $Container = $this->get_container($container_name);
             
             // upload file to Rackspace
-            $url = $container->make_public(static::TTL);
+            $url = $Container->make_public(static::TTL);
         }
         catch(AuthenticationException $e)
         {
@@ -258,11 +260,11 @@ class Cloud_Storage_Driver_Cf extends Cloud_Storage_Driver
         
         try
         {
-            $container = $this->get_container($from_container_name);
-            $object = $container->get_object($file_name);
+            $Container = $this->get_container($from_container_name);
+            $Object = $Container->get_object($file_name);
             
             // Copy to Rackspace target container
-            $container->copy_object_to($object, $to_container_name, $new_file_name);
+            $Container->copy_object_to($Object, $to_container_name, $new_file_name);
             
         }
         catch(AuthenticationException $e)
@@ -296,7 +298,8 @@ class Cloud_Storage_Driver_Cf extends Cloud_Storage_Driver
      */
     public function object_exists($path_to_object, $container_name = null)
     {
-        $url = $this->get_container_url($container)  . $path_to_object;
+        $container_name = $this->validate_container_name($container_name);
+        $url = $this->get_container_url($container_name)  . $path_to_object;
         
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_NOBODY, true);
@@ -311,17 +314,17 @@ class Cloud_Storage_Driver_Cf extends Cloud_Storage_Driver
     
     /**
      * Get the container by name
-     * @param string $name
+     * @param string $container_name
      * @return CF_Container
      */
-    private function get_container($name)
+    private function get_container($container_name)
     {
-        $connection = $this->connect();
+        $Connection = $this->connect();
 
         // Get the container we want to use
-        $container = $connection->get_container($name);
+        $Container = $Connection->get_container($container_name);
         
-        return $container;
+        return $Container;
     }
     
     
@@ -348,39 +351,13 @@ class Cloud_Storage_Driver_Cf extends Cloud_Storage_Driver
         
         if ( $auth->authenticated() )
         {
-            $connection = new \CF_Connection($auth);
+            $Connection = new \CF_Connection($auth);
         }
         else
         {
             throw new AuthenticationException("Authentication failed") ;
         }
         
-        return $connection;
-    }
-    
-    
-    /**
-     * Helper method to get a list with the basic info of each object in the list.
-     * @param array $list 
-     * @return array $objects with basic information about the objects
-     */
-    private function get_list_objects($list)
-    {
-        $objects = array();
-        
-        foreach($list['Contents'] as $content)
-        {
-            $path_info = pathinfo($content['Key']);
-            !isset($path_info['extension']) and $path_info['extension'] = '';
-            
-            $objects[] = array(
-                    'full_name' => $content['Key'],
-                    'base_name' => $path_info['basename'],
-                    'extension' => $path_info['extension'],
-                    'size' => $content['Size'],
-                ); 
-        }
-        
-        return $objects;
+        return $Connection;
     }
 }

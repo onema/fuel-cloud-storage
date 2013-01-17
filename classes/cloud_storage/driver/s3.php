@@ -4,7 +4,6 @@
  * Use Composer "require": {"aws/aws-sdk-php": "2.*"}
  *
  * @package Cloud_Storage
- * @version 0.1 
  * @author  Juan Manuel Torres <juan.torres@alleluu.com>
  * @license MIT License
  * @copyright  2013-2014 Alleluu Development team
@@ -33,18 +32,20 @@ class Cloud_Storage_Driver_S3 extends Cloud_Storage_Driver
      * @return boolean
      * @throws CantDeleteException
      */
-    public function delete_object($path_to_object)
+    public function delete_object($path_to_object, $container_name = null)
     {
+        $container_name = $this->validate_container_name($container_name);
+        
         try 
         {
             // AWS doesn't tell us if the file exists or not.
-            if(!$this->object_exists($path_to_object))
+            if(!$this->object_exists($path_to_object, $container_name))
             {
                 throw new DeleteObjectException('File does not exists');
             }
             
             $this->s3->deleteObject(array(
-                'Bucket' => $this->get_config('container'),
+                'Bucket' => $container_name,
                 'Key'    => $path_to_object,
                 'args'   => array('required' => true) 
             ));
@@ -67,8 +68,10 @@ class Cloud_Storage_Driver_S3 extends Cloud_Storage_Driver
      * @throws CantUploadException
      * @throws InvalidFileException
      */
-    public function upload_object($path_to_object, $new_file_name = null)
+    public function upload_object($path_to_object, $new_file_name = null, $container_name = null)
     {
+        $container_name = $this->validate_container_name($container_name);
+        
         $file_info = $this->get_file_info($path_to_object, $new_file_name);
         
         /* 
@@ -83,7 +86,7 @@ class Cloud_Storage_Driver_S3 extends Cloud_Storage_Driver
              */
             $this->create_instance();
             $this->s3->putObject(array(
-                'Bucket' => $this->get_config('container'),
+                'Bucket' => $container_name,
                 'Key'    => $file_info['basename'],
                 'Body'   => fopen($path_to_object, 'r'),
                 'ACL'    => CannedAcl::PUBLIC_READ
@@ -105,15 +108,15 @@ class Cloud_Storage_Driver_S3 extends Cloud_Storage_Driver
     /**
      * Creates a new S3 Bucket.
      * 
-     * @param string $name name of the bucket to be created
-     * @param string $location Specifies the region where the bucket will be created.
+     * @param string $container_name name of the bucket to be created
+     * @param string $location Specifies the region where the bucket will be created. Currently not supported
      * @return boolean
      * @throws CreateContainerException
      */
-    public function create_container($name, $location = null)
+    public function create_container($container_name, $location = null)
     {
         $setup = array(
-                    'Bucket' => $name,
+                    'Bucket' => $container_name,
                     'ACL'    => CannedAcl::PUBLIC_READ
                 );
         
@@ -133,7 +136,7 @@ class Cloud_Storage_Driver_S3 extends Cloud_Storage_Driver
             throw new CreateContainerException($e->getMessage());
         }
         
-        return $this->get_container_url($name);
+        return $this->get_container_url($container_name);
     }
    
     
@@ -142,12 +145,14 @@ class Cloud_Storage_Driver_S3 extends Cloud_Storage_Driver
      * (including all object versions and Delete Markers) in the bucket 
      * must be deleted before the bucket itself can be deleted.
      * 
-     * @param string $name bucket name to be deleted
+     * @param string $container_name bucket name to be deleted
      * @return boolean
      * @throws DeleteContainerException
      */
-    public function delete_container($name)
+    public function delete_container($container_name = null)
     {
+        $container_name = $this->validate_container_name($container_name);
+        
         try 
         {
             /*
@@ -156,7 +161,7 @@ class Cloud_Storage_Driver_S3 extends Cloud_Storage_Driver
              */
             $this->create_instance();
             $this->s3->deleteBucket(array(
-                        'Bucket' => $name,
+                        'Bucket' => $container_name,
                     ));
         } 
         catch (S3Exception $e) 
@@ -172,14 +177,13 @@ class Cloud_Storage_Driver_S3 extends Cloud_Storage_Driver
      * Returns a list of all the objects within a specified path/prefix. 
      * 
      * @param type $path the base path to the objects we want to list
-     * @param type $bucket_name (Optional) if not provided the default bucket will be used
+     * @param type $container_name (Optional) if not provided the default bucket will be used
      * @return array A list with the most basic information about each object in the list
      * @throws ListObjectsException
      */
-    public function list_objects($path = '', $bucket_name = null)
+    public function list_objects($path = '', $container_name = null)
     {
-        // Use the default bucket if none is specified
-        !isset($bucket_name) and $bucket_name = $this->get_config('container');
+        $container_name = $this->validate_container_name($container_name);
         
         try 
         {
@@ -189,7 +193,7 @@ class Cloud_Storage_Driver_S3 extends Cloud_Storage_Driver
              */
             $this->create_instance();
             $list_model = $this->s3->listObjects(array(
-                        'Bucket' => $bucket_name,
+                        'Bucket' => $container_name,
                         'Prefix' => $path
                     ));
         } 
@@ -207,14 +211,14 @@ class Cloud_Storage_Driver_S3 extends Cloud_Storage_Driver
     /**
      * Returns the Amazon S3 bucket url, by default it uses https protocol
      * 
-     * @param string $name container name
+     * @param string $container_name container name
      * @return string
      * @throws InvalidContainerException
      */
-    public function get_container_url($name = null)
+    public function get_container_url($container_name = null)
     {
         // use the default container name if one is not provided.
-        !isset($name) and $name = $this->get_config('container');
+        !isset($container_name) and $container_name = $this->get_config('container');
         
         try 
         {
@@ -230,12 +234,12 @@ class Cloud_Storage_Driver_S3 extends Cloud_Storage_Driver
             throw new InvalidContainerException($e->getMessage());
         }
         
-        if(!$this->s3-> doesBucketExist($name))
+        if(!$this->s3-> doesBucketExist($container_name))
         {
-            throw new InvalidContainerException("The conainer $name doesn't exist");
+            throw new InvalidContainerException("The conainer $container_name doesn't exist");
         }
         
-        return 'https://s3.amazonaws.com/' . $name . '/' ;
+        return 'https://s3.amazonaws.com/' . $container_name . '/' ;
     }
     
     
@@ -245,14 +249,14 @@ class Cloud_Storage_Driver_S3 extends Cloud_Storage_Driver
      * @param type $from_container_name
      * @param type $to_container_name
      * @param type $file_name Full name of the origin file, this should include path.
-        * @param type $new_file_name Optional, Full namee to the destination container. If not set it will use the same path and name as the source
+     * @param type $new_file_name Optional, Full namee to the destination container. If not set it will use the same path and name as the source
      * @return boolean
      * @throws CopyObjectException
      */
     public function copy_to($from_container_name, $to_container_name, $file_name, $new_file_name = null)
     {
         $file_info = pathinfo($file_name);
-        !isset($new_file_name) and $new_file_name = $file_info['dirname'] . '/' . $file_info['basename'];
+        isset($new_file_name) or $new_file_name = $file_info['dirname'] . '/' . $file_info['basename'];
         
         $new_file_name = ltrim($new_file_name, '/');
         
@@ -294,7 +298,7 @@ class Cloud_Storage_Driver_S3 extends Cloud_Storage_Driver
      */
     public function object_exists($path_to_object, $container_name = null)
     {
-        !isset($container_name) and $container_name = $this->get_config('container');
+        $container_name = $this->validate_container_name($container_name);
         
         try 
         {
