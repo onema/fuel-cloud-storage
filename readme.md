@@ -26,9 +26,9 @@ that the libraries live in the vendor directory in **APPPATH**.
 * Use Composer to install the appropriate libraries. 
 A sample_composer.json file is provided with this package, run 
 
-
+```
     $ php composer.phar install  
-
+```
 
 * Use the config file to set the correct authentication.
 Set the key pair (access/secret keys in the case of Amazon and 
@@ -37,18 +37,18 @@ simply called access_key and access_secret.
 If no keys are specified in the config file, they can 
 still be set at run time by using the method set_config:
 
-
+```php
     $Driver->set_config('access_key', $access_key_value);
     $Driver->set_config('access_secret', $access_secret_value);
-
+```
 
 * Run the unit test or see the sample below. 
 This package comes with very simple unit tests that check the most basic 
 functionality of the package. The unit test can be run by using the group=storage 
 
-
+```
      $ oil test --group=storage
-
+```
 
 # Usage
 
