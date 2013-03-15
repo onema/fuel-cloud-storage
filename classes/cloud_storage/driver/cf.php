@@ -13,9 +13,6 @@
 
 namespace Cloud_Storage;
 
-// @TODO: there has to be a better way to include this file
-require APPPATH.'vendor/omissis/php-cloudfiles/cloudfiles.php';
-
 class Cloud_Storage_Driver_Cf extends Cloud_Storage_Driver
 {
     /**
@@ -243,6 +240,7 @@ class Cloud_Storage_Driver_Cf extends Cloud_Storage_Driver
      * Copy a file from one container to another. This method requires the following
      * patch https://github.com/rackspace/php-cloudfiles/pull/87
      * Also see https://github.com/rackspace/php-cloudfiles/issues/82
+     * and https://github.com/omissis/php-cloudfiles/pull/1. 
      * 
      * @param type $from_container_name
      * @param type $to_container_name
