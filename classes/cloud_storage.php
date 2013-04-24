@@ -3,7 +3,7 @@
  * 
  *
  * @package Cloud_Storage
- * @version 0.1 
+ * @version 0.1.1
  * @author  Juan Manuel Torres <juan.torres@alleluu.com>
  * @license MIT License
  * @copyright  2013-2014 Alleluu Development team
