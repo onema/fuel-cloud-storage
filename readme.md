@@ -16,7 +16,7 @@ A simple class abstraction for cloud storage providers. Default providers includ
 * Rackspace Cloud Files 
 
 # Version
-0.1
+0.1.1
 
 # Installation
 * Install Composer. Follow this guide to enable fuelphp to work with composer
@@ -26,9 +26,9 @@ that the libraries live in the vendor directory in **APPPATH**.
 * Use Composer to install the appropriate libraries. 
 A sample_composer.json file is provided with this package, run 
 
-
+```
     $ php composer.phar install  
-
+```
 
 * Use the config file to set the correct authentication.
 Set the key pair (access/secret keys in the case of Amazon and 
@@ -37,66 +37,91 @@ simply called access_key and access_secret.
 If no keys are specified in the config file, they can 
 still be set at run time by using the method set_config:
 
-
+```php
     $Driver->set_config('access_key', $access_key_value);
     $Driver->set_config('access_secret', $access_secret_value);
-
+```
 
 * Run the unit test or see the sample below. 
 This package comes with very simple unit tests that check the most basic 
 functionality of the package. The unit test can be run by using the group=storage 
 
-
+```
      $ oil test --group=storage
-
+```
 
 # Usage
 
-    $name = 'img/'.time().'.png';
-    $container_name = 'my_fuel_cloud_storage_container';
+```php
+
+    $time = time();
+        
+    // This is the file name in the container. it should include the "path"
+    $file_name = 'img/'.$time.'.png';
+    $container_name = 'fuel_cloud_storage_container';
+    $backup_container_name = 'fuel_cloud_storage_backup';
+
+    // path to local file
     $path_to_test_image = '/path/to/test/image.png';
 
-    // This will use the default config values, use the param s3 or cf to get specific values.
+    // This will use the default config values, pass the driver name and it 
+    // will use the config for that driver
     $Cloud_Storage = \Cloud_Storage\Cloud_Storage::forge();
-    $Cloud_Storage->create_container($container_name);
 
-    // change the container to use the new one, otherwise the one specified in the config will be used
+    // Create a new container an set it as the default
+    $Cloud_Storage->create_container($container_name);
     $Cloud_Storage->set_config('container', $container_name);
 
-    // Upload file
-    $Cloud_Storage->upload_object($path_to_test_image, $name);
+    // Upload file to default container
+    $Cloud_Storage->upload_object($path_to_test_image, $file_name);
 
-    // Verify file existence
-    $url = $Cloud_Storage->get_container_url($container_name) . $name;
-    $code = file_code($url);
-
-    if($code == 200)
+    // Verify file existence in default container
+    if($Cloud_Storage->object_exists($file_name))
     {
-        echo "file was uploaded correctly<br>";
+        echo "file was uploaded correctly";
     }
 
-    // Delete Object
-    $Cloud_Storage->delete_object($name);
-    $code = file_code($url);
+    // Create backup container
+    $Cloud_Storage->create_container($backup_container_name);
 
-    if($code > 400)
+    // Copy file from the default container to the backup one. 
+    // This method do not support copy between services yet (eg: s3 -> cf).
+    // This method requires the following patch for Rackspace Cloud Files:
+    // https://github.com/rackspace/php-cloudfiles/pull/87
+    // Also see:
+    //  https://github.com/rackspace/php-cloudfiles/issues/82
+    $Cloud_Storage->copy_to($container_name, $backup_container_name, $file_name, 'backup_img/' . $time . '.png');
+
+    // Verify file existence in backup container
+    if($Cloud_Storage->object_exists('backup_img/' . $time . '.png', $backup_container_name))
     {
-        echo "file was deleted correctly<br>";
+        echo "file was copied correctly";
     }
 
-    $Cloud_Storage->delete_container($container_name);
+    // Delete Object object in the default container
+    $Cloud_Storage->delete_object($file_name);
 
-    function file_code($url) 
+    // Verify the file was deleted from default container
+    if(!$Cloud_Storage->object_exists($file_name))
     {
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_NOBODY, true);
-        curl_exec($ch);
-        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        // $retcode > 400 -> not found, $retcode = 200, found.
-        curl_close($ch);
-        return $code;
+        echo "file was deleted correctly";
     }
-    
+
+    // delete default container
+    $Cloud_Storage->delete_container();
+
+    // Delete Object from backup container
+    $Cloud_Storage->delete_object('backup_img/' . $time . '.png', $backup_container_name);
+
+    // Verify the file was deleted from the backup container
+    if(!$Cloud_Storage->object_exists('backup_img/' . $time . '.png', $backup_container_name))
+    {
+        echo "file was deleted correctly";
+    }
+
+    // Delete Backup Container
+    $Cloud_Storage->delete_container($backup_container_name);
+```    
 
 # Exceptions
     \InvalidDriverException, thrown when the given driver doesn't exist

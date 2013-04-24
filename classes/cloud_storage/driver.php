@@ -3,7 +3,6 @@
  * 
  *
  * @package Cloud_Storage
- * @version 0.1 
  * @author  Juan Manuel Torres <juan.torres@alleluu.com>
  * @license MIT License
  * @copyright  2013-2014 Alleluu Development team
@@ -86,16 +85,23 @@ abstract class Cloud_Storage_Driver
         return $file_info;
     }
     
+    protected function validate_container_name($container_name = null)
+    {
+        // Use the default container if none is specified
+        isset($container_name) or $container_name = $this->get_config('container');
+        return $container_name;
+    }
     
-    abstract public function delete_object($path_to_object);
-    abstract public function upload_object($path_to_object, $new_file_name = null);
-    abstract public function create_container($name);
-    abstract public function delete_container($name);
-    abstract public function list_objects($path = '', $bucket_name = null);
-    abstract public function get_container_url($name = null);
+    
+    abstract public function delete_object($path_to_object, $container_name = null);
+    abstract public function upload_object($path_to_object, $new_file_name = null, $container_name = null);
+    abstract public function create_container($container_name);
+    abstract public function delete_container($container_name = null);
+    abstract public function list_objects($path = '', $container_name = null);
+    abstract public function get_container_url($container_name = null);
     
     abstract public function copy_to($from_container_name, $to_container_name, $file_name, $new_file_name = null);
-    abstract public function object_exists($path_to_object, $container = null);
+    abstract public function object_exists($path_to_object, $container_name = null);
 
     /**
      * @todo implement the following methods.
